@@ -5,56 +5,46 @@ module.exports.getAllManga = async (req, res) => {
 	const page = req.query.page || 1;
 	const keyword = req.query.s;
 	const url = req.protocol + '://' + req.get('host') + req.baseUrl;
-	// let response;
+	let response;
 
-	axios
-		.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`)
-		.then((response) => {
-			return res.json({ data: response.data });
-		})
-		.catch((err) => console.log(err.message));
+	try {
+		if (keyword) {
+			response = await axios.get(`https://komikcast.com/page/${page}/?s=${keyword}`);
+		} else {
+			response = await axios.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`);
+		}
+	} catch (error) {
+		return res.json({ message: `something went wrong: ${error.message.toLowerCase()}` });
+	}
 
-	// try {
-	// 	if (keyword) {
-	// 		response = await axios.get(`https://komikcast.com/page/${page}/?s=${keyword}`);
-	// 	} else {
-	// 		response = await axios.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`);
-	// 	}
-	// } catch (error) {
-	// 	return res.json({ message: `something went wrong: ${error.message.toLowerCase()}` });
-	// }
+	const $ = cheerio.load(response.data);
+	const mangaList = [];
+	const mangaCount = $('.list-update_items-wrapper .list-update_item').length;
 
-	// return res.json({
-	// 	res: response.data.toString(),
-	// });
-	// const $ = cheerio.load(response.data);
-	// const mangaList = [];
-	// const mangaCount = $('.list-update_items-wrapper .list-update_item').length;
+	$('.list-update_items-wrapper .list-update_item').each((i, el) => {
+		const mangaTitle = $(el).find('.list-update_item-info .title').text();
+		const mangaThumbnail = $(el).find('.list-update_item-image img').attr('src');
+		const mangaSlug = $(el).find('a').attr('href').split('/')[4];
+		const mangaRating = $(el).find('.list-update_item-info .rating .numscore').text();
 
-	// $('.list-update_items-wrapper .list-update_item').each((i, el) => {
-	// 	const mangaTitle = $(el).find('.list-update_item-info .title').text();
-	// 	const mangaThumbnail = $(el).find('.list-update_item-image img').attr('src');
-	// 	const mangaSlug = $(el).find('a').attr('href').split('/')[4];
-	// 	const mangaRating = $(el).find('.list-update_item-info .rating .numscore').text();
+		mangaList.push({
+			title: mangaTitle,
+			thumbnail: mangaThumbnail,
+			slug: mangaSlug,
+			rating: mangaRating,
+			detail_url: `${url}/${mangaSlug}`,
+		});
+	});
 
-	// 	mangaList.push({
-	// 		title: mangaTitle,
-	// 		thumbnail: mangaThumbnail,
-	// 		slug: mangaSlug,
-	// 		rating: mangaRating,
-	// 		detail_url: `${url}/${mangaSlug}`,
-	// 	});
-	// });
-
-	// return res.json({
-	// 	info: {
-	// 		author: 'https://github.com/rickydamarsaputra',
-	// 		source: 'https://komikcast.com',
-	// 	},
-	// 	next_page: keyword ? (mangaCount == 60 ? `${url}?s=${keyword}&page=${parseInt(page) + 1}` : null) : `${url}?page=${parseInt(page) + 1}`,
-	// 	prev_page: page == 1 ? null : keyword ? `${url}?s=${keyword}&page=${parseInt(page) - 1}` : `${url}?page=${parseInt(page) - 1}`,
-	// 	data: mangaList,
-	// });
+	return res.json({
+		info: {
+			author: 'https://github.com/rickydamarsaputra',
+			source: 'https://komikcast.com',
+		},
+		next_page: keyword ? (mangaCount == 60 ? `${url}?s=${keyword}&page=${parseInt(page) + 1}` : null) : `${url}?page=${parseInt(page) + 1}`,
+		prev_page: page == 1 ? null : keyword ? `${url}?s=${keyword}&page=${parseInt(page) - 1}` : `${url}?page=${parseInt(page) - 1}`,
+		data: mangaList,
+	});
 };
 
 module.exports.getMangaBySlug = async (req, res) => {
