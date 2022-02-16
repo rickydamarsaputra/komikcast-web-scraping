@@ -18,6 +18,7 @@ module.exports.getAllManga = async (req, res) => {
 	}
 
 	const $ = cheerio.load(response.data);
+	console.log(response);
 	const mangaList = [];
 	const mangaCount = $('.list-update_items-wrapper .list-update_item').length;
 
