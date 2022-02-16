@@ -5,21 +5,28 @@ module.exports.getAllManga = async (req, res) => {
 	const page = req.query.page || 1;
 	const keyword = req.query.s;
 	const url = req.protocol + '://' + req.get('host') + req.baseUrl;
-	let response;
+	// let response;
 
-	try {
-		if (keyword) {
-			response = await axios.get(`https://komikcast.com/page/${page}/?s=${keyword}`);
-		} else {
-			response = await axios.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`);
-		}
-	} catch (error) {
-		return res.json({ message: `something went wrong: ${error.message.toLowerCase()}` });
-	}
+	axios
+		.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`)
+		.then((response) => {
+			return res.json({ data: response.data });
+		})
+		.catch((err) => console.log(err.message));
 
-	return res.json({
-		res: response.data.toString(),
-	});
+	// try {
+	// 	if (keyword) {
+	// 		response = await axios.get(`https://komikcast.com/page/${page}/?s=${keyword}`);
+	// 	} else {
+	// 		response = await axios.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`);
+	// 	}
+	// } catch (error) {
+	// 	return res.json({ message: `something went wrong: ${error.message.toLowerCase()}` });
+	// }
+
+	// return res.json({
+	// 	res: response.data.toString(),
+	// });
 	// const $ = cheerio.load(response.data);
 	// const mangaList = [];
 	// const mangaCount = $('.list-update_items-wrapper .list-update_item').length;
