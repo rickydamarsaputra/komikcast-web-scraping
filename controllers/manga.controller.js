@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -9,9 +11,9 @@ module.exports.getAllManga = async (req, res) => {
 
 	try {
 		if (keyword) {
-			response = await axios.get(`https://komikcast.com/page/${page}/?s=${keyword}`);
+			response = await axios.get(`${process.env.SITE_URL}/page/${page}/?s=${keyword}`);
 		} else {
-			response = await axios.get(`https://komikcast.com/daftar-komik/page/${page}/?sortby=update&type=manga`);
+			response = await axios.get(`${process.env.SITE_URL}/daftar-komik/page/${page}/?sortby=update&type=manga`);
 		}
 	} catch (error) {
 		return res.json({ message: `something went wrong: ${error.message.toLowerCase()}` });
@@ -39,7 +41,7 @@ module.exports.getAllManga = async (req, res) => {
 	return res.json({
 		info: {
 			author: 'https://github.com/rickydamarsaputra',
-			source: 'https://komikcast.com',
+			source: process.env.SITE_URL,
 		},
 		next_page: keyword ? (mangaCount == 60 ? `${url}?s=${keyword}&page=${parseInt(page) + 1}` : null) : `${url}?page=${parseInt(page) + 1}`,
 		prev_page: page == 1 ? null : keyword ? `${url}?s=${keyword}&page=${parseInt(page) - 1}` : `${url}?page=${parseInt(page) - 1}`,
@@ -51,7 +53,7 @@ module.exports.getMangaBySlug = async (req, res) => {
 	const { slug } = req.params;
 	const url = req.protocol + '://' + req.get('host') + req.baseUrl;
 
-	const { data } = await axios.get(`https://komikcast.com/manga/${slug}`);
+	const { data } = await axios.get(`${process.env.SITE_URL}/manga/${slug}`);
 	const $ = cheerio.load(data);
 
 	const mangaTitle = $('.komik_info-content .komik_info-content-body .komik_info-content-body-title').text();
@@ -89,7 +91,7 @@ module.exports.getMangaBySlug = async (req, res) => {
 	res.json({
 		info: {
 			author: 'https://github.com/rickydamarsaputra',
-			source: 'https://komikcast.com',
+			source: process.env.SITE_URL,
 		},
 		data: {
 			title: mangaTitle,
@@ -104,7 +106,7 @@ module.exports.getMangaBySlug = async (req, res) => {
 
 module.exports.getMangaChapterBySlug = async (req, res) => {
 	const { slug } = req.params;
-	const { data } = await axios.get(`https://komikcast.com/chapter/${slug}`);
+	const { data } = await axios.get(`${process.env.SITE_URL}/chapter/${slug}`);
 	const $ = cheerio.load(data);
 
 	const chapterImages = [];
@@ -118,7 +120,7 @@ module.exports.getMangaChapterBySlug = async (req, res) => {
 	res.json({
 		info: {
 			author: 'https://github.com/rickydamarsaputra',
-			source: 'https://komikcast.com',
+			source: process.env.SITE_URL,
 		},
 		data: chapterImages,
 	});

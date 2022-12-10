@@ -13,6 +13,7 @@
 	"dependencies": {
 		"axios": "^0.25.0",
 		"cheerio": "*",
+		"dotenv": "^16.0.3",
 		"express": "^4.17.2",
 		"morgan": "^1.10.0"
 	},
